@@ -11,6 +11,27 @@ import {
   updateTaskSchema,
   deleteTaskSchema,
 } from "./model/validation-schemas";
+import { asyncHandler } from "./utils/asyncHandler";
+import { errorHandler } from "./middleware/errorHandler";
+import {
+  AppError,
+  NotFoundError,
+  ValidationError,
+  UnauthorizedError,
+  ConflictError,
+  ForbiddenError,
+  BadRequestError,
+  InternalServerError,
+} from "./utils/errors";
+import { logger } from "./utils/logger";
+import { v4 as uuidv4 } from "uuid";
+
+// Extend Express Request to include id
+declare module "express-serve-static-core" {
+  interface Request {
+    id?: string;
+  }
+}
 
 config();
 
@@ -26,24 +47,37 @@ app.use(
   })
 );
 
+// Request ID middleware
+app.use((req, res, next) => {
+  req.id = uuidv4();
+  res.setHeader("X-Request-Id", req.id);
+  next();
+});
+
 app.get("/", (req: Request, res: Response) => {
+  logger.info(`[${req.id}] Health check`);
   res.status(200).json({
     message: "✅ Server is running",
+    requestId: req.id,
   });
 });
 
-app.post("/api/users/register", async (req: Request, res: Response) => {
-  const parseResult = registerUserSchema.safeParse(req.body);
-
-  if (!parseResult.success) {
-    return res.status(400).json({
-      message: "❌ Invalid input",
-      errors: parseResult.error,
-    });
-  }
-  const { name, email, password } = parseResult.data;
-
-  try {
+app.post(
+  "/api/users/register",
+  asyncHandler(async (req: Request, res: Response) => {
+    const parseResult = registerUserSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      throw new ValidationError("❌ Invalid input");
+    }
+    const { name, email, password } = parseResult.data;
+    // Check for existing email
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email));
+    if (existingUser.length > 0) {
+      throw new ConflictError("❌ Email already registered");
+    }
     const newUser = await db
       .insert(users)
       .values({
@@ -54,89 +88,61 @@ app.post("/api/users/register", async (req: Request, res: Response) => {
         updatedAt: new Date(),
       })
       .returning();
-
     if (newUser.length === 0) {
-      return res.status(400).json({ message: "❌ Failed to create user" });
+      throw new AppError("❌ Failed to create user", 400);
     }
-
-    console.log(newUser);
-
-    return res.status(201).json({
+    logger.info(`[${req.id}] User registered: ${email}`);
+    res.status(201).json({
       message: "✅ User created successfully",
+      requestId: req.id,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "❌ Internal server error",
-    });
-  }
-});
+  })
+);
 
-app.post("/api/users/login", async (req: Request, res: Response) => {
-  const parseResult = loginUserSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      message: "❌ Invalid input",
-      errors: parseResult.error,
-    });
-  }
-
-  const { email, password } = parseResult.data;
-
-  try {
+app.post(
+  "/api/users/login",
+  asyncHandler(async (req: Request, res: Response) => {
+    const parseResult = loginUserSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      throw new ValidationError("❌ Invalid input");
+    }
+    const { email, password } = parseResult.data;
     const user = await db.select().from(users).where(eq(users.email, email));
-
     if (user.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ User not found",
-      });
+      throw new NotFoundError("❌ User not found");
     }
-
     if (user[0].password !== password) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ Invalid password",
-      });
+      throw new UnauthorizedError("❌ Invalid password");
     }
-
-    console.log(user[0]);
-
-    return res.status(200).json({
+    logger.info(`[${req.id}] User login: ${email}`);
+    res.status(200).json({
       success: true,
       message: "✅ User found",
       user: user[0],
+      requestId: req.id,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "❌ Internal server error",
+  })
+);
+
+app.get(
+  "/api/users/logout",
+  asyncHandler(async (req: Request, res: Response) => {
+    logger.info(`[${req.id}] User logged out`);
+    res.status(200).json({
+      message: "✅ User logged out",
+      requestId: req.id,
     });
-  }
-});
+  })
+);
 
-app.get("/api/users/logout", async (req: Request, res: Response) => {
-  res.status(200).json({
-    message: "✅ User logged out",
-  });
-});
-
-app.post("/api/tasks", async (req: Request, res: Response) => {
-  const parseResult = createTaskSchema.safeParse(req.body);
-
-  if (!parseResult.success) {
-    console.log(parseResult.error);
-    return res.status(400).json({
-      success: false,
-      message: "❌ Invalid input",
-      errors: parseResult.error,
-    });
-  }
-  const { title, description, userId } = parseResult.data;
-
-  try {
+app.post(
+  "/api/tasks",
+  asyncHandler(async (req: Request, res: Response) => {
+    const parseResult = createTaskSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      throw new ValidationError("❌ Invalid input");
+    }
+    const { title, description, userId } = parseResult.data;
     const newTodo = await db
       .insert(todos)
       .values({
@@ -147,192 +153,139 @@ app.post("/api/tasks", async (req: Request, res: Response) => {
         updatedAt: new Date(),
       })
       .returning();
-
     if (newTodo.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ Failed to create task",
-      });
+      throw new AppError("❌ Failed to create task", 400);
     }
-
-    console.log(newTodo[0]);
-
-    return res.status(201).json({
+    logger.info(`[${req.id}] Task created for user ${userId}: ${title}`);
+    res.status(201).json({
       success: true,
       message: "✅ Task created successfully",
       task: newTodo[0],
+      requestId: req.id,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "❌ Internal server error",
-    });
-  }
-});
+  })
+);
 
-app.get("/api/tasks/:userId", async (req: Request, res: Response) => {
-  const userId = parseInt(req.params.userId);
-
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: "❌ Missing userId",
-    });
-  }
-
-  try {
-    const user = await db.select().from(users).where(eq(users.id, userId));
-
-    if (user.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ User not found",
-      });
+app.get(
+  "/api/tasks/:userId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId);
+    if (!userId) {
+      throw new ValidationError("❌ Missing userId");
     }
-
+    const user = await db.select().from(users).where(eq(users.id, userId));
+    if (user.length === 0) {
+      throw new NotFoundError("❌ User not found");
+    }
     const tasks = await db
       .select()
       .from(todos)
       .where(eq(todos.userId, userId))
       .orderBy(desc(todos.createdAt));
-
     if (tasks.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "❌ No tasks found for this user",
-      });
+      throw new NotFoundError("❌ No tasks found for this user");
     }
-
-    return res.status(200).json({
+    logger.info(`[${req.id}] Tasks fetched for user ${userId}`);
+    res.status(200).json({
       success: true,
       message: "✅ Tasks fetched successfully",
       tasks,
+      requestId: req.id,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "❌ Internal server error",
-    });
-  }
-});
+  })
+);
 
-app.patch("/api/tasks/:taskId", async (req: Request, res: Response) => {
-  const taskId = parseInt(req.params.taskId);
-  const parseResult = updateTaskSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      message: "❌ Invalid input",
-      errors: parseResult.error,
-    });
-  }
-  const { id, title, description, completed, userId } = parseResult.data;
-
-  if (!title || !description || !userId) {
-    return res.status(400).json({
-      message: "❌ Missing required fields",
-    });
-  }
-
-  try {
+app.patch(
+  "/api/tasks/:taskId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const taskId = parseInt(req.params.taskId);
+    const request = {
+      ...req.body,
+      id: taskId,
+    };
+    const parseResult = updateTaskSchema.safeParse(request);
+    if (!parseResult.success) {
+      throw new ValidationError("❌ Invalid input");
+    }
+    const { id, title, description, completed, userId } = parseResult.data;
+    if (!title || !description || !userId) {
+      throw new ValidationError("❌ Missing required fields");
+    }
     const taskToUpdate = await db
       .select()
       .from(todos)
       .where(eq(todos.id, taskId));
-
     if (taskToUpdate.length === 0) {
-      return res.status(400).json({
-        message: "❌ Task not found",
-      });
+      throw new NotFoundError("❌ Task not found");
     }
-
     if (taskToUpdate[0].userId !== userId) {
-      return res.status(400).json({
-        message: "❌ Unauthorized to update this task",
-      });
+      throw new ForbiddenError("❌ Unauthorized to update this task");
     }
-
     const updateFields: any = { title, description };
     if (typeof completed === "boolean") updateFields.completed = completed;
-
     const updatedTodo = await db
       .update(todos)
       .set(updateFields)
       .where(eq(todos.id, taskId))
       .returning();
-
     if (updatedTodo.length === 0) {
-      return res.status(400).json({
-        message: "❌ Failed to update task",
-      });
+      throw new AppError("❌ Failed to update task", 400);
     }
-
-    return res.status(200).json({
+    logger.info(`[${req.id}] Task updated: ${taskId}`);
+    res.status(200).json({
       message: "✅ Task updated successfully",
       task: updatedTodo[0],
+      requestId: req.id,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "❌ Internal server error",
-    });
-  }
-});
+  })
+);
 
-app.delete("/api/tasks/:taskId", async (req: Request, res: Response) => {
-  const taskId = parseInt(req.params.taskId);
-  const parseResult = deleteTaskSchema.safeParse({ ...req.body, taskId });
-  if (!parseResult.success) {
-    return res.status(400).json({
-      message: "❌ Invalid input",
-      errors: parseResult.error,
-    });
-  }
-  const { userId } = parseResult.data;
-  if (!taskId) {
-    return res.status(400).json({
-      message: "❌ Missing taskId",
-    });
-  }
-  const taskToDelete = await db
-    .select()
-    .from(todos)
-    .where(eq(todos.id, taskId));
-  if (taskToDelete.length === 0) {
-    return res.status(400).json({
-      message: "❌ Task not found",
-    });
-  }
-  if (taskToDelete[0].userId !== userId) {
-    return res.status(400).json({
-      message: "❌ Unauthorized to delete this task",
-    });
-  }
-  try {
+app.delete(
+  "/api/tasks/:taskId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const taskId = parseInt(req.params.taskId);
+    const parseResult = deleteTaskSchema.safeParse({ ...req.body, taskId });
+    if (!parseResult.success) {
+      throw new ValidationError("❌ Invalid input");
+    }
+    const { userId } = parseResult.data;
+    if (!taskId) {
+      throw new ValidationError("❌ Missing taskId");
+    }
+    const taskToDelete = await db
+      .select()
+      .from(todos)
+      .where(eq(todos.id, taskId));
+    if (taskToDelete.length === 0) {
+      throw new NotFoundError("❌ Task not found");
+    }
+    if (taskToDelete[0].userId !== userId) {
+      throw new ForbiddenError("❌ Unauthorized to delete this task");
+    }
     const deletedTask = await db
       .delete(todos)
       .where(eq(todos.id, taskId))
       .returning();
     if (deletedTask.length === 0) {
-      return res.status(400).json({
-        message: "❌ Failed to delete task",
-      });
+      throw new AppError("❌ Failed to delete task", 400);
     }
-    return res.status(200).json({
+    logger.info(`[${req.id}] Task deleted: ${taskId}`);
+    res.status(200).json({
       message: "✅ Task deleted successfully",
+      requestId: req.id,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "❌ Internal server error",
-    });
-  }
+  })
+);
+
+// Catch-all 404 for /api/* routes
+app.all(/^\/api\/.*/, (req: Request, res: Response, next: NextFunction) => {
+  next(new NotFoundError("❌ Route not found"));
 });
 
-app.all(/^\/api\/.*/, (req: Request, res: Response) => {
-  res.status(404).json({
-    message: "❌ Route not found",
-  });
-});
+// Centralized error handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  logger.info(`Server listening on http://localhost:${PORT}`);
 });
