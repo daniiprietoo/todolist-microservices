@@ -42,7 +42,7 @@ flowchart TD
   ORM -- "Queries" --> DB
   MW -- "Logs" --> LOG
 
-  classDef highlight fill:#f9f,stroke:#333,stroke-width:2px;
+  classDef highlight fill:#aeeaff,stroke:#333,stroke-width:2px;
   class FE,API highlight;
 
 ```
