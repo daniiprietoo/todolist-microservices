@@ -36,8 +36,8 @@ todo-list-monolith/
 ### 1. Clone the repository
 
 ```bash
-git clone <repo-url>
-cd todo-list-monolith
+git clone https://github.com/daniiprietoo/todo-list-monolith-architecture
+cd todo-list-monolith-architecture
 ```
 
 ### 2. Install dependencies
