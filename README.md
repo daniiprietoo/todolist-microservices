@@ -15,12 +15,12 @@ todo-list-monolith/
 
 ```mermaid
 flowchart TD
-  subgraph Frontend [Frontend (React + Vite)]
+  subgraph Frontend
     FE[User Interface<br/>(React Components)]
     API[API Layer<br/>(Axios)]
   end
 
-  subgraph Backend [Backend (Express + Drizzle ORM)]
+  subgraph Backend
     EX[Express Server]
     MW[Middleware<br/>(Error Handling, etc.)]
     CTL[Controllers / Routes]
@@ -112,4 +112,3 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser.
 - `npm run dev` — Start both backend and frontend in development mode
 - `npm run dev:backend` — Start backend only
 - `npm run dev:frontend` — Start frontend only
-
