@@ -22,12 +22,12 @@ flowchart TD
 
   subgraph Backend
     EX["Express Server"]
-    MW["Middleware\n(Error Handling, etc.)"]
+    MW["Middleware (Error Handling, etc.)"]
     CTL["Controllers / Routes"]
     ORM["Drizzle ORM"]
     DB["PostgreSQL Database"]
     SCH["Schema Definitions"]
-    VAL["Validation Schemas\n(zod)"]
+    VAL["Validation Schemas (zod)"]
     LOG["Logger"]
   end
 
