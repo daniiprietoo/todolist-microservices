@@ -16,19 +16,19 @@ todo-list-monolith/
 ```mermaid
 flowchart TD
   subgraph Frontend
-    FE[User Interface<br/>(React Components)]
-    API[API Layer<br/>(Axios)]
+    FE["User Interface\n(React Components)"]
+    API["API Layer\n(Axios)"]
   end
 
   subgraph Backend
-    EX[Express Server]
-    MW[Middleware<br/>(Error Handling, etc.)]
-    CTL[Controllers / Routes]
-    ORM[Drizzle ORM]
-    DB[(PostgreSQL Database)]
-    SCH[Schema Definitions]
-    VAL[Validation Schemas<br/>(zod)]
-    LOG[Logger]
+    EX["Express Server"]
+    MW["Middleware\n(Error Handling, etc.)"]
+    CTL["Controllers / Routes"]
+    ORM["Drizzle ORM"]
+    DB["PostgreSQL Database"]
+    SCH["Schema Definitions"]
+    VAL["Validation Schemas\n(zod)"]
+    LOG["Logger"]
   end
 
   FE -- "HTTP Requests (REST)" --> API
