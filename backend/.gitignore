@@ -29,7 +29,7 @@ dist/
 *.tsbuildinfo
 
 # Environment variables
-.env*
+.env
 
 # IDEs and editors
 .vscode/
