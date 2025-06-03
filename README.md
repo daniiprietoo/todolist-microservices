@@ -11,6 +11,42 @@ todo-list-monolith/
   package.json  # Monorepo scripts
 ```
 
+## Diagram
+
+```mermaid
+flowchart TD
+  subgraph Frontend [Frontend (React + Vite)]
+    FE[User Interface<br/>(React Components)]
+    API[API Layer<br/>(Axios)]
+  end
+
+  subgraph Backend [Backend (Express + Drizzle ORM)]
+    EX[Express Server]
+    MW[Middleware<br/>(Error Handling, etc.)]
+    CTL[Controllers / Routes]
+    ORM[Drizzle ORM]
+    DB[(PostgreSQL Database)]
+    SCH[Schema Definitions]
+    VAL[Validation Schemas<br/>(zod)]
+    LOG[Logger]
+  end
+
+  FE -- "HTTP Requests (REST)" --> API
+  API -- "Proxy /api/*" --> EX
+
+  EX -- "Uses" --> MW
+  EX -- "Routes" --> CTL
+  CTL -- "Validates" --> VAL
+  CTL -- "DB Access" --> ORM
+  ORM -- "Schema" --> SCH
+  ORM -- "Queries" --> DB
+  MW -- "Logs" --> LOG
+
+  classDef highlight fill:#f9f,stroke:#333,stroke-width:2px;
+  class FE,API highlight;
+
+```
+
 ### Backend
 
 - **Tech:** Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
@@ -77,6 +113,3 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser.
 - `npm run dev:backend` — Start backend only
 - `npm run dev:frontend` — Start frontend only
 
-## License
-
-MIT
