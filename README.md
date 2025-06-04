@@ -13,39 +13,7 @@ todo-list-monolith/
 
 ## Diagram
 
-```mermaid
-flowchart TD
-  subgraph Frontend
-    FE["User Interface\n(React Components)"]
-    API["API Layer\n(Axios)"]
-  end
-
-  subgraph Backend
-    EX["Express Server"]
-    MW["Middleware (Error Handling, etc.)"]
-    CTL["Controllers / Routes"]
-    ORM["Drizzle ORM"]
-    DB["PostgreSQL Database"]
-    SCH["Schema Definitions"]
-    VAL["Validation Schemas (zod)"]
-    LOG["Logger"]
-  end
-
-  FE -- "HTTP Requests (REST)" --> API
-  API -- "Proxy /api/*" --> EX
-
-  EX -- "Uses" --> MW
-  EX -- "Routes" --> CTL
-  CTL -- "Validates" --> VAL
-  CTL -- "DB Access" --> ORM
-  ORM -- "Schema" --> SCH
-  ORM -- "Queries" --> DB
-  MW -- "Logs" --> LOG
-
-  classDef highlight fill:#aeeaff,stroke:#333,stroke-width:2px;
-  class FE,API highlight;
-
-```
+![image](https://github.com/user-attachments/assets/2a20b886-c4ee-4c0c-b3e4-65db382b0e65)
 
 ### Backend
 
