@@ -45,8 +45,9 @@ export default function Tasks() {
     });
     if (!response.success) {
       toast.error(response.error || "Failed to update task");
+    } else {
+      toast.success("Task updated successfully");
     }
-    toast.success("Task updated successfully");
     fetchTasks();
   };
 
