@@ -1,10 +1,17 @@
 import { createTask } from "@/api/api";
 import { useState } from "react";
-import { Card, CardContent, CardTitle, CardHeader, CardDescription } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardHeader,
+  CardDescription,
+} from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
 import { Label } from "./ui/label";
+import { toast } from "sonner";
 
 type CreateTaskFormProps = {
   userId: number;
@@ -13,7 +20,12 @@ type CreateTaskFormProps = {
   onTaskCreated?: () => void;
 };
 
-export function CreateTaskForm({ userId, className, onTaskCreated, ...props }: CreateTaskFormProps) {
+export function CreateTaskForm({
+  userId,
+  className,
+  onTaskCreated,
+  ...props
+}: CreateTaskFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -33,13 +45,15 @@ export function CreateTaskForm({ userId, className, onTaskCreated, ...props }: C
       description: formData.description,
       userId: userId,
     });
-    
+
     if (response.success) {
       setFormData({ title: "", description: "" });
       if (onTaskCreated) onTaskCreated();
+      toast.success("Task created successfully!");
     } else {
       console.error(response.message);
       setError(response.message);
+      toast.error(response.message || "Failed to create task");
     }
   };
 
@@ -48,9 +62,7 @@ export function CreateTaskForm({ userId, className, onTaskCreated, ...props }: C
       <Card>
         <CardHeader>
           <CardTitle>Create a new task</CardTitle>
-          <CardDescription>
-            Enter the task details below 
-          </CardDescription>
+          <CardDescription>Enter the task details below</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { registerUser } from "@/api/api";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function RegisterForm({
   className,
@@ -47,8 +48,10 @@ export function RegisterForm({
     });
     if (response.success) {
       navigate("/");
+      toast.success("Registration successful! Please log in.");
     } else {
       console.error(response.message);
+      toast.error(response.message || "Registration failed");
     }
   };
 
