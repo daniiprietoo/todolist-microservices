@@ -56,9 +56,10 @@ export default function Tasks() {
     const response = await deleteTask(taskId, user.id);
     if (!response.success) {
       toast.error(response.error || "Failed to delete task");
+    } else {
+      toast.success("Task deleted successfully");
+      fetchTasks();
     }
-    toast.success("Task deleted successfully");
-    fetchTasks();
   };
 
   return (
