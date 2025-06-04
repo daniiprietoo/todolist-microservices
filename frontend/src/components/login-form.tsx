@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { loginUser } from "@/api/api";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@/hooks/user";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -37,8 +38,10 @@ export function LoginForm({
     if (response.success && response.user) {
       setUser(response.user);
       navigate("/tasks");
+      toast.success("Login successful!");
     } else {
       setError(response.error || "Login failed");
+      toast.error(response.error || "Login failed");
     }
   };
 

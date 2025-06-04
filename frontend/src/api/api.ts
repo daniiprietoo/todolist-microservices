@@ -19,7 +19,13 @@ const api = axios.create({
 
 export async function registerUser(user: CreateUserSchema) {
   const validatedUser = createUserSchema.safeParse(user);
-  if (validatedUser.success) {
+  if (!validatedUser.success) {
+    return {
+      success: false,
+      error: `Validation failed: ${validatedUser.error.message}`,
+    };
+  }
+  try {
     const data = {
       name: validatedUser.data.name,
       email: validatedUser.data.email,
@@ -30,48 +36,80 @@ export async function registerUser(user: CreateUserSchema) {
       success: response.data.success,
       message: response.data.message,
     };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
+    return {
+      success: false,
+      error: message,
+    };
   }
-  return {
-    success: false,
-    error: `Failed to register user: ${validatedUser.error.message}`,
-  };
 }
 
 export async function loginUser(user: LoginUserSchema) {
   const validatedUser = loginUserSchema.safeParse(user);
-  if (validatedUser.success) {
+  if (!validatedUser.success) {
+    return {
+      success: false,
+      error: `Validation failed: ${validatedUser.error.message}`,
+    };
+  }
+  try {
     const response = await api.post("/users/login", validatedUser.data);
     return {
       success: response.data.success,
       message: response.data.message,
       user: response.data.user,
     };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
+    return {
+      success: false,
+      error: message,
+    };
   }
-  return {
-    success: false,
-    error: `Failed to login user: ${validatedUser.error.message}`,
-  };
 }
 
 export async function createTask(task: CreateTaskSchema) {
   const validatedTask = createTaskSchema.safeParse(task);
-  if (validatedTask.success) {
+  if (!validatedTask.success) {
+    return {
+      success: false,
+      error: `Validation failed: ${validatedTask.error.message}`,
+    };
+  }
+  try {
     const response = await api.post("/tasks", validatedTask.data);
     return {
       success: response.data.success,
       message: response.data.message,
     };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
+    return {
+      success: false,
+      error: message,
+    };
   }
-  return {
-    success: false,
-    error: `Failed to create task: ${validatedTask.error.message}`,
-  };
 }
 
 export async function updateTask(task: UpdateTaskSchema) {
   const validatedTask = updateTaskSchema.safeParse(task);
-
-  if (validatedTask.success) {
+  if (!validatedTask.success) {
+    return {
+      success: false,
+      error: `Validation failed: ${validatedTask.error.message}`,
+    };
+  }
+  try {
     const { id, title, description, completed, userId } = validatedTask.data;
     const response = await api.patch(`/tasks/${id}`, {
       title,
@@ -83,22 +121,30 @@ export async function updateTask(task: UpdateTaskSchema) {
       success: response.data.success,
       message: response.data.message,
     };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
+    return {
+      success: false,
+      error: message,
+    };
   }
-  return {
-    success: false,
-    error: `Failed to update task: ${validatedTask.error.message}`,
-  };
 }
 
 export async function deleteTask(taskId: number, userId: number) {
   try {
     const response = await api.delete(`/tasks/${taskId}`, { data: { userId } });
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
     return {
       success: false,
-      error: `Failed to delete task: ${error}`,
+      error: message,
     };
   }
 }
@@ -110,11 +156,14 @@ export async function getTasks(userId: number) {
       success: response.data.success,
       tasks: response.data.tasks,
     };
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "An unknown error occurred";
     return {
       success: false,
-      error: `Failed to get tasks: ${error}`,
+      error: message,
     };
   }
 }

@@ -25,6 +25,8 @@ import {
 } from "./utils/errors";
 import { logger } from "./utils/logger";
 import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcrypt";
+import { rateLimit } from "express-rate-limit";
 
 // Extend Express Request to include id
 declare module "express-serve-static-core" {
@@ -54,6 +56,20 @@ app.use((req, res, next) => {
   next();
 });
 
+const apiLimiter = rateLimit({
+  
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests, please try again later.",
+  },
+});
+
+app.use("/api", apiLimiter);
+
 app.get("/", (req: Request, res: Response) => {
   logger.info(`[${req.id}] Health check`);
   res.status(200).json({
@@ -78,12 +94,13 @@ app.post(
     if (existingUser.length > 0) {
       throw new ConflictError("❌ Email already registered");
     }
+    const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds
     const newUser = await db
       .insert(users)
       .values({
         name,
         email,
-        password,
+        password: hashedPassword,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -109,16 +126,17 @@ app.post(
     const { email, password } = parseResult.data;
     const user = await db.select().from(users).where(eq(users.email, email));
     if (user.length === 0) {
-      throw new NotFoundError("❌ User not found");
+      throw new NotFoundError("❌ Invalid Credentials");
     }
-    if (user[0].password !== password) {
-      throw new UnauthorizedError("❌ Invalid password");
+    const passwordMatch = await bcrypt.compare(password, user[0].password);
+    if (!passwordMatch) {
+      throw new UnauthorizedError("❌ Invalid Credentials");
     }
     logger.info(`[${req.id}] User login: ${email}`);
     res.status(200).json({
       success: true,
       message: "✅ User found",
-      user: user[0],
+      user: { id: user[0].id, name: user[0].name, email: user[0].email },
       requestId: req.id,
     });
   })
@@ -129,6 +147,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     logger.info(`[${req.id}] User logged out`);
     res.status(200).json({
+      success: true,
       message: "✅ User logged out",
       requestId: req.id,
     });
@@ -182,9 +201,6 @@ app.get(
       .from(todos)
       .where(eq(todos.userId, userId))
       .orderBy(desc(todos.createdAt));
-    if (tasks.length === 0) {
-      throw new NotFoundError("❌ No tasks found for this user");
-    }
     logger.info(`[${req.id}] Tasks fetched for user ${userId}`);
     res.status(200).json({
       success: true,
@@ -228,11 +244,14 @@ app.patch(
       .set(updateFields)
       .where(eq(todos.id, taskId))
       .returning();
+
     if (updatedTodo.length === 0) {
-      throw new AppError("❌ Failed to update task", 400);
+      throw new AppError(`❌ Failed to update task`, 400);
     }
+
     logger.info(`[${req.id}] Task updated: ${taskId}`);
     res.status(200).json({
+      success: true,
       message: "✅ Task updated successfully",
       task: updatedTodo[0],
       requestId: req.id,
@@ -271,6 +290,7 @@ app.delete(
     }
     logger.info(`[${req.id}] Task deleted: ${taskId}`);
     res.status(200).json({
+      success: true,
       message: "✅ Task deleted successfully",
       requestId: req.id,
     });
