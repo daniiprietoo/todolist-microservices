@@ -13,7 +13,7 @@ todo-list-layered/
 
 ## Diagram
 
-![image](https://github.com/user-attachments/assets/2a20b886-c4ee-4c0c-b3e4-65db382b0e65)
+![image](https://github.com/user-attachments/assets/27d566d6-da50-4115-8958-676a0eb4cca5)
 
 ### Backend
 
