@@ -2,6 +2,13 @@
 
 A full-stack Todo List application using a layered architecture. The backend is built with Node.js, Express, TypeScript, Drizzle ORM, and PostgreSQL. The frontend is a modern React app using Vite, TypeScript, Tailwind CSS, and Shadcn UI.
 
+## Tech Stack
+
+- **Frontend**: React, Vite, TypeScript, Tailwind CSS, Shadcn UI
+- **Backend**: Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
+- **Database**: PostgreSQL
+- **API Documentation**: Swagger UI
+
 ## Project Structure
 
 ```
@@ -15,20 +22,32 @@ todo-list-layered/
 
 ![image](https://github.com/user-attachments/assets/27d566d6-da50-4115-8958-676a0eb4cca5)
 
-### Backend
-
-- **Tech:** Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
-- **Location:** `backend/`
-- **Main entry:** `backend/index.ts`
-- **API endpoints:** User registration, login, CRUD for tasks
-- **Migrations:** Managed with Drizzle Kit
+## Explanation
 
 ### Frontend
 
-- **Tech:** React, TypeScript, Vite, Tailwind CSS, Shadcn UI
-- **Location:** `frontend/`
-- **Main entry:** `frontend/src/main.tsx`
-- **Features:** User login/registration, create/update/delete tasks
+- React App: user interface
+- API Layer (Axios): handle HTTP requests to the backend
+
+### Proxy /api/
+
+- Vite proxies all requests starting with /api to the backend, abstracting the backend from the frontend. Also allows to make API calls wihout CORS issues.
+
+### Backend
+
+- **Express Server**: main app, receives HTTP requests, applies middleware and routes request to correct handlers
+- **Routes**: define API endpoints and map them to controllers
+- **Controllers**: handle incoming requests, validate inputs, call services, and return responses
+- **Services**: contain business logic, process data and coordinate controllers and repositories
+- **Repositories**: handle database operations, interact with the database, abstracting the database from the services
+- **Drizzle ORM**: provides a type-safe way to interact with the database
+- **PostgreSQL**: database
+
+- **Uses**:
+  - represents middleware and utilities that the Express server uses globally.
+  - **Logging**: records important events, errors, and requests for debugging and monitoring.
+  - **Error Handling**: catches and processes errors that occur during request handling, ensuring consistent error responses.
+  - **Rate-Limiting**: prevents abuse by limiting how many requests a client can make in a certain period.
 
 ## Getting Started
 
