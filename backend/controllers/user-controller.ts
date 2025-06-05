@@ -119,3 +119,12 @@ export const loginUserController = asyncHandler(
     }
   }
 );
+
+export const logoutUserController = asyncHandler(
+  async (req: Request, res: Response) => {
+    sendResponse(res, {
+      success: true,
+      message: "✅ User logged out successfully",
+    });
+  }
+);

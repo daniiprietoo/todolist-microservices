@@ -80,14 +80,6 @@ app.get(
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", taskRoutes);
 
-// Catch-all 404 for /api/* routes
-app.all(/^\/api\/.*/, (req: Request, res: Response, next: NextFunction) => {
-  next(new NotFoundError("❌ Route not found"));
-});
-
-// Centralized error handler
-app.use(errorHandler);
-
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
@@ -107,7 +99,19 @@ const swaggerOptions = {
   apis: ["./controllers/*.ts", "./routes/*.ts"],
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api/docs", swaggerUi.serve as any, swaggerUi.setup(swaggerSpec) as any);
+app.use(
+  "/api/docs",
+  swaggerUi.serve as any,
+  swaggerUi.setup(swaggerSpec) as any
+);
+
+// Catch-all 404 for /api/* routes
+app.all(/^\/api\/.*/, (req: Request, res: Response, next: NextFunction) => {
+  next(new NotFoundError("❌ Route not found"));
+});
+
+// Centralized error handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

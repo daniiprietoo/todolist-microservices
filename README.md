@@ -1,6 +1,6 @@
 # Todo List Layered Architecture
 
-Todo List application. It features a PostgreSQL database, an Express backend using Drizzle ORM, and a React + Vite frontend.
+A full-stack Todo List application using a layered architecture. The backend is built with Node.js, Express, TypeScript, Drizzle ORM, and PostgreSQL. The frontend is a modern React app using Vite, TypeScript, Tailwind CSS, and Shadcn UI.
 
 ## Project Structure
 
@@ -25,7 +25,7 @@ todo-list-layered/
 
 ### Frontend
 
-- **Tech:** React, TypeScript, Vite, Tailwind CSS
+- **Tech:** React, TypeScript, Vite, Tailwind CSS, Shadcn UI
 - **Location:** `frontend/`
 - **Main entry:** `frontend/src/main.tsx`
 - **Features:** User login/registration, create/update/delete tasks
@@ -40,11 +40,11 @@ todo-list-layered/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/daniiprietoo/todo-list-monolith-architecture
-cd todo-list-monolith-architecture
+git clone <your-repo-url>
+cd todo-list-layered
 ```
 
-### 2. Install dependencies
+### 2. Install dependencies (monorepo)
 
 ```bash
 npm install
@@ -70,6 +70,7 @@ npm run dev
 ```
 
 - This will start both the backend (on port 4000) and the frontend (on port 5173 by default).
+- The frontend is configured to proxy API requests (`/api`) to the backend.
 
 ### 6. Open the app
 
@@ -77,6 +78,10 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Scripts
 
-- `npm run dev` — Start both backend and frontend in development mode
+- `npm run dev` — Start both backend and frontend in development mode (monorepo)
 - `npm run dev:backend` — Start backend only
 - `npm run dev:frontend` — Start frontend only
+
+## API Documentation
+
+- Swagger UI is available at [http://localhost:4000/api/docs](http://localhost:4000/api/docs) when the backend is running.
