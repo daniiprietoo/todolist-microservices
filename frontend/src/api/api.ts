@@ -154,7 +154,7 @@ export async function getTasks(userId: number) {
     const response = await api.get(`/tasks/${userId}`);
     return {
       success: response.data.success,
-      tasks: response.data.tasks,
+      tasks: response.data.data ?? [],
     };
   } catch (error: any) {
     const message =

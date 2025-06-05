@@ -1,11 +1,11 @@
-# Todo List Monolith
+# Todo List Layered Architecture
 
-Monolithic Todo List application. It features a PostgreSQL database, an Express backend using Drizzle ORM, and a React + Vite frontend.
+Todo List application. It features a PostgreSQL database, an Express backend using Drizzle ORM, and a React + Vite frontend.
 
 ## Project Structure
 
 ```
-todo-list-monolith/
+todo-list-layered/
   backend/    # Express API, Drizzle ORM, PostgreSQL models, migrations
   frontend/   # React app (Vite, Tailwind CSS, Shadcn UI)
   package.json  # Monorepo scripts
