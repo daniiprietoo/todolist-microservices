@@ -8,7 +8,10 @@ export const todoInsertSchema = createInsertSchema(todos);
 export const registerUserValidationSchema = userInsertSchema
   .omit({ createdAt: true })
   .omit({ updatedAt: true })
-  .omit({ id: true });
+  .omit({ id: true })
+  .extend({
+    passwordConfirmation: z.string().min(8),
+  });
 
 export const loginUserSchema = z.object({
   email: z.string().email(),

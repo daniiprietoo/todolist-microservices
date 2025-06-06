@@ -113,6 +113,8 @@ app.all(/^\/api\/.*/, (req: Request, res: Response, next: NextFunction) => {
 // Centralized error handler
 app.use(errorHandler);
 
+export default app;
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   logger.info(`Server listening on http://localhost:${PORT}`);
