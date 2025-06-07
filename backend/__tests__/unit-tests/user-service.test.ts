@@ -1,8 +1,8 @@
 import {
   loginUserService,
   registerUserService,
-} from "../services/user-service";
-import * as userRepo from "../repositories/users-repository";
+} from "../../services/user-service";
+import * as userRepo from "../../repositories/users-repository";
 import bcrypt from "bcrypt";
 
 jest.mock("bcrypt");

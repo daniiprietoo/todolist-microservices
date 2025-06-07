@@ -5,23 +5,31 @@ import { z } from "zod";
 export const userInsertSchema = createInsertSchema(users);
 export const todoInsertSchema = createInsertSchema(todos);
 
-export const registerUserValidationSchema = userInsertSchema
-  .omit({ createdAt: true })
-  .omit({ updatedAt: true })
-  .omit({ id: true })
-  .extend({
-    passwordConfirmation: z.string().min(8),
-  });
+export const registerUserValidationSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(8)
+    .regex(/[A-Z]/, "Must contain an uppercase letter")
+    .regex(/[a-z]/, "Must contain a lowercase letter")
+    .regex(/[0-9]/, "Must contain a digit")
+    .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
+  passwordConfirmation: z.string().min(8),
+}).refine((data) => data.password === data.passwordConfirmation, {
+  message: "Passwords do not match",
+  path: ["passwordConfirmation"],
+});
 
 export const loginUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
 
-export const createTaskValidationSchema = todoInsertSchema.pick({
-  title: true,
-  description: true,
-  userId: true,
+export const createTaskValidationSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  userId: z.number(),
 });
 
 export const updateTaskValidationSchema = z.object({

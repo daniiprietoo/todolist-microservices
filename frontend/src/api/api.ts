@@ -30,6 +30,7 @@ export async function registerUser(user: CreateUserSchema) {
       name: validatedUser.data.name,
       email: validatedUser.data.email,
       password: validatedUser.data.password,
+      passwordConfirmation: validatedUser.data.passwordConfirmation,
     };
     const response = await api.post("/users/register", data);
     return {
@@ -61,7 +62,7 @@ export async function loginUser(user: LoginUserSchema) {
     return {
       success: response.data.success,
       message: response.data.message,
-      user: response.data.user,
+      user: response.data.data,
     };
   } catch (error: any) {
     const message =

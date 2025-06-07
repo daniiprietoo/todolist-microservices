@@ -4,9 +4,9 @@ import {
   getTaskByIdService,
   updateTaskService,
   deleteTaskService,
-} from "../services/tasks-service";
-import * as tasksRepo from "../repositories/tasks-repositories";
-import * as usersRepo from "../repositories/users-repository";
+} from "../../services/tasks-service";
+import * as tasksRepo from "../../repositories/tasks-repositories";
+import * as usersRepo from "../../repositories/users-repository";
 
 jest.mock("../repositories/tasks-repositories");
 jest.mock("../repositories/users-repository");

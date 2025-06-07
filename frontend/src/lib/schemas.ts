@@ -10,7 +10,7 @@ export const createUserSchema = z.object({
     .regex(/[a-z]/, "Must contain a lowercase letter")
     .regex(/[0-9]/, "Must contain a digit")
     .regex(/[^A-Za-z0-9]/, "Must contain a special character"),
-  passwordConfirmation: z.string(),
+  passwordConfirmation: z.string().min(8),
 });
 
 export type CreateUserSchema = z.infer<typeof createUserSchema>;
