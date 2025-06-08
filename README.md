@@ -24,7 +24,7 @@ todo-list-microservices/
 
 ## Diagram
 
-![image](https://github.com/user-attachments/assets/27d566d6-da50-4115-8958-676a0eb4cca5)
+![image](https://github.com/user-attachments/assets/0da5ef26-c6ff-4252-9bae-cc70a1dbd020)
 
 ## Explanation
 
