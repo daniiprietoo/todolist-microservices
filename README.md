@@ -30,28 +30,44 @@ todo-list-microservices/
 
 ### Frontend
 
-- React App: user interface
-- API Layer (Axios): handle HTTP requests to the backend
+- **React App**: The user interface of the application, built with React and styled using Tailwind CSS and Shadcn UI.
+- **API Layer (Axios)**: Handles all HTTP requests from the frontend to the backend. All API calls are made through this layer.
 
 ### Proxy /api/
 
-- Vite proxies all requests starting with /api to the backend, abstracting the backend from the frontend. Also allows to make API calls wihout CORS issues.
+- **Vite Proxy**: All requests from the frontend that start with `/api` are proxied to the API Gateway. This abstracts backend service URLs from the frontend and avoids CORS issues.
 
 ### Backend
 
-- **Express Server**: main app, receives HTTP requests, applies middleware and routes request to correct handlers
-- **Routes**: define API endpoints and map them to controllers
-- **Controllers**: handle incoming requests, validate inputs, call services, and return responses
-- **Services**: contain business logic, process data and coordinate controllers and repositories
-- **Repositories**: handle database operations, interact with the database, abstracting the database from the services
-- **Drizzle ORM**: provides a type-safe way to interact with the database
-- **PostgreSQL**: database
+#### API Gateway
 
-- **Uses**:
-  - represents middleware and utilities that the Express server uses globally.
-  - **Logging**: records important events, errors, and requests for debugging and monitoring.
-  - **Error Handling**: catches and processes errors that occur during request handling, ensuring consistent error responses.
-  - **Rate-Limiting**: prevents abuse by limiting how many requests a client can make in a certain period.
+- **API Gateway**: Acts as the single entry point for all client requests. It proxies requests to the appropriate backend service based on the route:
+  - `/api/users` → User Service
+  - `/api/tasks` → Todos Service
+- **Uses** (Cross-cutting concerns):
+  - **Logging**: Records important events, errors, and requests for debugging and monitoring.
+  - **Error Handling**: Catches and processes errors that occur during request handling, ensuring consistent error responses.
+  - **Rate-Limiting**: Prevents abuse by limiting how many requests a client can make in a certain period.
+
+#### User Service
+
+- **Routes**: Define API endpoints for user-related operations (registration, login, fetch user, etc.).
+- **Controllers**: Handle incoming requests, validate inputs, call services, and return responses.
+- **Services**: Contain business logic for user management, coordinate between controllers and repositories.
+- **Zod (Validation)**: Validates incoming data to ensure it meets required schemas before processing.
+- **Repositories**: Handle database operations for users, abstracting the database layer from the services.
+- **Drizzle ORM**: Provides a type-safe way to interact with the PostgreSQL database.
+- **PostgreSQL**: Stores user data persistently.
+
+#### Todos Service
+
+- **Routes**: Define API endpoints for todo/task-related operations (CRUD tasks, etc.).
+- **Controllers**: Handle incoming requests, validate inputs, call services, and return responses.
+- **Services**: Contain business logic for todo management, coordinate between controllers and repositories. Also validate user existence by communicating with the User Service.
+- **Zod (Validation)**: Validates incoming data to ensure it meets required schemas before processing.
+- **Repositories**: Handle database operations for todos, abstracting the database layer from the services.
+- **Drizzle ORM**: Provides a type-safe way to interact with the PostgreSQL database.
+- **PostgreSQL**: Stores todo/task data persistently.
 
 ## Getting Started
 
@@ -63,7 +79,7 @@ todo-list-microservices/
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/daniiprietoo/todo-list-microservices.git
 cd todo-list-microservices
 ```
 
