@@ -5,12 +5,14 @@ import {
 } from "../model/validation-schemas";
 import {
   ConflictError,
+  NotFoundError,
   UnauthorizedError,
   ValidationError,
 } from "../utils/errors";
 import {
   loginUserService,
   registerUserService,
+  getUserByIdService,
 } from "../services/user-service";
 import { asyncHandler } from "../utils/asyncHandler";
 import { logger } from "../utils/logger";
@@ -50,6 +52,57 @@ export const registerUserController = asyncHandler(
           message: error.message,
           requestId: req.id,
           status: 409,
+        });
+      } else {
+        logger.error(
+          `[${req.id}] Internal server error: ${
+            error instanceof Error ? error.message : String(error)
+          }`
+        );
+        sendResponse(res, {
+          success: false,
+          message: "Internal server error",
+          requestId: req.id,
+          status: 500,
+        });
+      }
+    }
+  }
+);
+
+export const getUserByIdController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    if (!userId) {
+      throw new ValidationError("❌ User ID is required");
+    }
+
+    try {
+      const user = await getUserByIdService(Number(userId));
+
+      sendResponse(res, {
+        success: true,
+        message: "✅ User fetched successfully",
+        data: user,
+        requestId: req.id,
+        status: 200,
+      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        logger.error(`[${req.id}] Validation error: ${error.message}`);
+        sendResponse(res, {
+          success: false,
+          message: error.message,
+          requestId: req.id,
+          status: 400,
+        });
+      } else if (error instanceof NotFoundError) {
+        logger.error(`[${req.id}] Not found error: ${error.message}`);
+        sendResponse(res, {
+          success: false,
+          message: error.message,
+          requestId: req.id,
+          status: 404,
         });
       } else {
         logger.error(

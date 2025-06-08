@@ -6,7 +6,7 @@ import {
   updateTask,
   deleteTask,
 } from "../repositories/tasks-repositories";
-import { getUserById } from "../repositories/users-repository";
+import { getUserById } from "../clients/user-service-client";
 import { AppError, NotFoundError, ForbiddenError } from "../utils/errors";
 
 export async function createTaskService(

@@ -1,6 +1,6 @@
-import { createUser, getUserByEmail } from "../repositories/users-repository";
+import { createUser, getUserByEmail, getUserById } from "../repositories/users-repository";
 import { NewUser, UserWithoutPassword } from "../schema/schema";
-import { AppError, ConflictError, UnauthorizedError } from "../utils/errors";
+import { AppError, ConflictError, NotFoundError, UnauthorizedError } from "../utils/errors";
 import bcrypt from "bcrypt";
 
 export async function registerUserService(
@@ -24,6 +24,21 @@ export async function registerUserService(
     email: newUser.email,
     createdAt: newUser.createdAt,
     updatedAt: newUser.updatedAt,
+  };
+  return userWithoutPassword;
+}
+
+export async function getUserByIdService(userId: number): Promise<UserWithoutPassword | null> {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new NotFoundError("❌ User not found");
+  }
+  const userWithoutPassword: UserWithoutPassword = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
   return userWithoutPassword;
 }

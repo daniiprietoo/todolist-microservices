@@ -3,6 +3,7 @@ import {
   registerUserController,
   loginUserController,
   logoutUserController,
+  getUserByIdController,
 } from "../controllers/user-controller";
 
 const router = Router();
@@ -73,5 +74,23 @@ router.post("/login", loginUserController);
  *         description: User logged out successfully
  */
 router.get("/logout", logoutUserController);
+
+/**
+ * @openapi
+ * /api/users/{userId}:
+ *   get:
+ *     summary: Get a user by ID
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         required: true
+ *         description: The ID of the user to fetch
+ *     responses:
+ *       200:
+ *         description: User fetched successfully
+ *       404:
+ *         description: User not found
+ */
+router.get("/users/:userId", getUserByIdController);
 
 export default router;

@@ -1,21 +1,25 @@
-# Todo List Layered Architecture
+# Todo List Microservices Architecture
 
-A full-stack Todo List application using a layered architecture. The backend is built with Node.js, Express, TypeScript, Drizzle ORM, and PostgreSQL. The frontend is a modern React app using Vite, TypeScript, Tailwind CSS, and Shadcn UI.
+A full-stack Todo List application using a microservices architecture. The backend is split into multiple services (API Gateway, Users Service, Todos Service), each built with Node.js, Express, TypeScript, Drizzle ORM, and PostgreSQL. The frontend is a modern React app using Vite, TypeScript, Tailwind CSS, and Shadcn UI.
 
 ## Tech Stack
 
 - **Frontend**: React, Vite, TypeScript, Tailwind CSS, Shadcn UI
-- **Backend**: Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
-- **Database**: PostgreSQL
-- **API Documentation**: Swagger UI
+- **API Gateway**: Node.js, Express, TypeScript, http-proxy-middleware
+- **Users Service**: Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
+- **Todos Service**: Node.js, Express, TypeScript, Drizzle ORM, PostgreSQL
+- **Database**: PostgreSQL (each service can use its own DB or share one)
+- **API Documentation**: Swagger UI (per service)
 
 ## Project Structure
 
 ```
-todo-list-layered/
-  backend/    # Express API, Drizzle ORM, PostgreSQL models, migrations
-  frontend/   # React app (Vite, Tailwind CSS, Shadcn UI)
-  package.json  # Monorepo scripts
+todo-list-microservices/
+  api-gateway/      # API Gateway (routes requests to services)
+  users-service/    # User management microservice
+  todos-service/    # Todo/task management microservice
+  frontend/         # React app (Vite, Tailwind CSS, Shadcn UI)
+  package.json      # Monorepo scripts
 ```
 
 ## Diagram
@@ -54,13 +58,13 @@ todo-list-layered/
 ### Prerequisites
 
 - Node.js (v18+ recommended)
-- PostgreSQL database
+- PostgreSQL database (can be shared or separate for each service)
 
 ### 1. Clone the repository
 
 ```bash
 git clone <your-repo-url>
-cd todo-list-layered
+cd todo-list-microservices
 ```
 
 ### 2. Install dependencies (monorepo)
@@ -71,13 +75,30 @@ npm install
 
 ### 3. Configure environment variables
 
-- Copy `.env.example` to `.env` in `backend/` and set your `DATABASE_URL` and `FRONTEND_URL`.
+- Copy `.env.example` (if available) or create `.env` files in each service directory (`api-gateway/`, `users-service/`, `todos-service/`).
+- Set the following variables as needed:
+  - **API Gateway**: `FRONTEND_URL`, `USERS_SERVICE_URL`, `TODOS_SERVICE_URL`
+  - **Users Service**: `DATABASE_URL`, `FRONTEND_URL`
+  - **Todos Service**: `DATABASE_URL`, `FRONTEND_URL`, `USERS_SERVICE_URL`
+
+Example for `api-gateway/.env`:
+
+```
+FRONTEND_URL=http://localhost:5173
+USERS_SERVICE_URL=http://localhost:4001
+TODOS_SERVICE_URL=http://localhost:4002
+```
 
 ### 4. Run database migrations
 
+For each service that uses a database (users-service, todos-service):
+
 ```bash
-cd backend
+cd users-service
 npx drizzle-kit push:pg
+cd ../todos-service
+npx drizzle-kit push:pg
+cd ..
 ```
 
 ### 5. Start the development servers
@@ -88,8 +109,12 @@ From the root directory:
 npm run dev
 ```
 
-- This will start both the backend (on port 4000) and the frontend (on port 5173 by default).
-- The frontend is configured to proxy API requests (`/api`) to the backend.
+- This will start all services concurrently:
+  - **Frontend**: [http://localhost:5173](http://localhost:5173)
+  - **API Gateway**: [http://localhost:3000](http://localhost:3000)
+  - **Users Service**: [http://localhost:4001](http://localhost:4001)
+  - **Todos Service**: [http://localhost:4002](http://localhost:4002)
+- The frontend is configured to proxy API requests (`/api`) to the API Gateway.
 
 ### 6. Open the app
 
@@ -97,10 +122,19 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Scripts
 
-- `npm run dev` — Start both backend and frontend in development mode (monorepo)
-- `npm run dev:backend` — Start backend only
+- `npm run dev` — Start all services in development mode (monorepo)
 - `npm run dev:frontend` — Start frontend only
+- `npm run dev:api-gateway` — Start API Gateway only
+- `npm run dev:users-service` — Start Users Service only
+- `npm run dev:todos-service` — Start Todos Service only
 
 ## API Documentation
 
-- Swagger UI is available at [http://localhost:4000/api/docs](http://localhost:4000/api/docs) when the backend is running.
+- **Users Service Swagger UI**: [http://localhost:4001/docs](http://localhost:4001/docs)
+- **Todos Service Swagger UI**: [http://localhost:4002/docs](http://localhost:4002/docs)
+
+## Notes
+
+- Each service can be developed, tested, and deployed independently.
+- The API Gateway abstracts the backend services from the frontend and handles cross-cutting concerns (CORS, rate limiting, etc).
+- The system is designed for extensibility—new services can be added and integrated via the API Gateway.
